@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=45", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aurutilsutils"
+description = "Utilities extending aurutils"
+readme = "README.md"
+authors = [
+    { name = "Arvid Norlander", email = "VorpalBlade@users.noreply.github.com" }
+]
+license = { text = "ISC" }
+dependencies = [
+    "appdirs",
+    "more-itertools",
+    "networkx",
+    "prompt-toolkit",
+    "pyyaml",
+    "regex",
+]
+dynamic = ["version"]
+
+[project.urls]
+Source = "https://github.com/VorpalBlade/aurutilsutils"
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[project.scripts]
+aur-smartsync = "aurutilsutils.smart_sync.__main__:main"
+aur-unmanaged = "aurutilsutils.unmanaged:main"
+
+[tool.setuptools_scm]

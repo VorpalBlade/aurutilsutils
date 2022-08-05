@@ -1,0 +1,21 @@
+#compdef aur-smartsync
+#description Smart configuration driven sync
+
+local -a args
+
+args=(
+    '(-)'{--help,-h}'[show help]'
+    '(--update -u)'{--update,-u}'[run update]'
+    '(--vcs -V)'{--vcs,-V}'[check for VCS packages that needs to be updated]'
+    '(--ignore -i)'{--ignore=,-i}'[packages to skip during this run]:package: _aur_local_packages'
+    '--no-download[do not download packages]'
+    '--no-view[do not view packages (DANGEROUS!)]'
+    '--no-build[do not perform actual build]'
+    '--ignore-repo=[ignore repository]:repository: _aur_repositories'
+    '--force-rebuild[force rebuild a package]:package: _aur_packages' # TODO
+    '(--debug -d)'{--debug,-d}'[show debug output]'
+    '(--log-level -l)'{--log-level=,-l}'[set log level]:log level:(warning info debug)'
+    #'*:package: _aur_local_packages'
+)
+
+_arguments $args
