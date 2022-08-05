@@ -1,6 +1,6 @@
 # Maintainer: Arvid Norlander <VorpalBlade@users.noreply.github.com>
 pkgname=aurutilsutils-git
-pkgver=0.1
+pkgver=r2.a202af2
 pkgrel=1
 pkgdesc="Utilities extending aurutils"
 arch=("any")
@@ -46,5 +46,5 @@ package() {
 	python -m installer --destdir="$pkgdir" dist/*.whl
 	install -Dm 644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
 	install -d "$pkgdir/usr/share/zsh/site-functions/"
-	install -Dm 644 -t "$pkgdir/usr/share/zsh/site-functions/" completon/zsh/_* 
+	install -Dm 644 -t "$pkgdir/usr/share/zsh/site-functions/" completion/zsh/_* 
 }
