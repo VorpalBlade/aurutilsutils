@@ -2,8 +2,6 @@
 """Script to find things that need to be updated in smart-sync config"""
 import argparse
 import logging
-import sys
-import traceback
 
 import networkx as nx
 from prompt_toolkit import print_formatted_text, HTML
@@ -11,8 +9,11 @@ from prompt_toolkit import print_formatted_text, HTML
 from .smart_sync.helpers import find_packages_in_config
 from .utils import aurutils
 from .utils.args import add_standard_flags
-from .utils.errors import FormattedException, UserErrorMessage
-from .utils.misc import packages_in_repos_full, resolve_pkgbase
+from .utils.misc import (
+    packages_in_repos_full,
+    resolve_pkgbase,
+    logging_and_error_handling,
+)
 from .utils.pacman import pacman_config, custom_repos
 from .utils.settings import load_sync_settings
 
@@ -32,21 +33,9 @@ def main():
     parser = _create_parser()
     args = parser.parse_args()
 
-    # Set up logging
-    log_level = getattr(logging, args.log_level.upper())
-    logging.basicConfig(format="%(levelname)s [%(name)s]: %(message)s", level=log_level)
-    try:
+    with logging_and_error_handling(log_level=args.log_level, debug=args.debug):
         # Start actual program logic
         process(args)
-    except UserErrorMessage as e:
-        if args.debug:
-            traceback.print_exception(e)
-        print_formatted_text(HTML("<ansired><b>ERROR:</b></ansired>"), e)
-        sys.exit(1)
-    except FormattedException as e:
-        traceback.print_exception(e)
-        print_formatted_text(HTML("<ansired><b>UNEXPECTED ERROR:</b></ansired>"), e)
-        sys.exit(1)
 
 
 def process(args: argparse.Namespace):

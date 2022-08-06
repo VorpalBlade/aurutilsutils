@@ -6,7 +6,6 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import traceback
 from collections.abc import Collection, Mapping
 from pathlib import Path
 
@@ -21,11 +20,10 @@ from ..utils import aurutils
 from ..utils.args import add_standard_flags
 from ..utils.errors import (
     UserErrorMessage,
-    FormattedException,
     CommandException,
     InternalError,
 )
-from ..utils.misc import pkgbase_mapping, packages_in_repos
+from ..utils.misc import pkgbase_mapping, packages_in_repos, logging_and_error_handling
 from ..utils.pacman import pacman_config, custom_repos, FileRepo
 from ..utils.settings import (
     load_sync_settings,
@@ -104,21 +102,9 @@ def main():
     args = parser.parse_args()
     args.force_rebuild = set(flatten(args.force_rebuild))
 
-    # Set up logging
-    log_level = getattr(logging, args.log_level.upper())
-    logging.basicConfig(format="%(levelname)s [%(name)s]: %(message)s", level=log_level)
-    try:
+    with logging_and_error_handling(log_level=args.log_level, debug=args.debug):
         # Start actual program logic
         process(args)
-    except UserErrorMessage as e:
-        if args.debug:
-            traceback.print_exception(e)
-        print_formatted_text(HTML("<ansired><b>ERROR:</b></ansired>"), e)
-        sys.exit(1)
-    except FormattedException as e:
-        traceback.print_exception(e)
-        print_formatted_text(HTML("<ansired><b>UNEXPECTED ERROR:</b></ansired>"), e)
-        sys.exit(1)
 
 
 def process(args: argparse.Namespace):

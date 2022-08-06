@@ -1,7 +1,13 @@
+import contextlib
 import logging
+import sys
+import traceback
 from typing import Collection, Mapping
 
+from prompt_toolkit import print_formatted_text, HTML
+
 from . import aurutils
+from .errors import UserErrorMessage, FormattedException
 from .pacman import FileRepo
 
 _LOGGER = logging.getLogger(name=__name__)
@@ -87,3 +93,21 @@ def resolve_pkgbase(
                 )
         pkg_base_mapping.update(pkg_base_mapping2)
     return pkgbases_in_config, pkg_base_mapping
+
+
+@contextlib.contextmanager
+def logging_and_error_handling(*, log_level: str, debug: bool):
+    # Set up logging
+    log_level = getattr(logging, log_level.upper())
+    logging.basicConfig(format="%(levelname)s [%(name)s]: %(message)s", level=log_level)
+    try:
+        yield
+    except UserErrorMessage as e:
+        if debug:
+            traceback.print_exception(e)
+        print_formatted_text(HTML("<ansired><b>ERROR:</b></ansired>"), e)
+        sys.exit(1)
+    except FormattedException as e:
+        traceback.print_exception(e)
+        print_formatted_text(HTML("<ansired><b>UNEXPECTED ERROR:</b></ansired>"), e)
+        sys.exit(1)
