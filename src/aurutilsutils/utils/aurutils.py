@@ -200,8 +200,26 @@ def graph(packages: Collection[str]):
 
 def vercmp_devel(repos: Mapping[str, FileRepo]):
     """Find set of outdated packages"""
-    for repo in repos.keys():
-        output = run_out(["aur", "vercmp-devel", "-d", repo])
-        for line in output.splitlines():
+    # Run in parallel for speed
+    results = [
+        (
+            repo,
+            subprocess.Popen(
+                ["aur", "vercmp-devel", "-d", repo],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                stdin=subprocess.DEVNULL,
+                encoding="utf-8",
+            ),
+        )
+        for repo in repos.keys()
+    ]
+    for repo, result in results:
+        stdout, stderr = result.communicate()
+        if result.returncode != 0:
+            raise CommandException(
+                f"aur vercmp-devel failed for repo {repo}", result.returncode, stderr
+            )
+        for line in stdout.splitlines():
             pkg, _ = line.split(" ", maxsplit=1)
             yield pkg
