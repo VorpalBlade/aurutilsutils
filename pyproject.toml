@@ -29,6 +29,7 @@ test = ["pytest"]
 [project.scripts]
 aur-smartsync = "aurutilsutils.smart_sync.__main__:main"
 aur-unmanaged = "aurutilsutils.unmanaged:main"
+aur-move-helper = "aurutilsutils.move_helper:main"
 
 [tool.setuptools_scm]
 write_to = "src/aurutilsutils/_version.py"

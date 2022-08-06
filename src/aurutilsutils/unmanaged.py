@@ -9,9 +9,10 @@ import networkx as nx
 from prompt_toolkit import print_formatted_text, HTML
 
 from .smart_sync.helpers import find_packages_in_config
-from .utils import aurutils, get_version
+from .utils import aurutils
+from .utils.args import add_standard_flags
 from .utils.errors import FormattedException, UserErrorMessage
-from .utils.misc import packages_in_repos_full
+from .utils.misc import packages_in_repos_full, resolve_pkgbase
 from .utils.pacman import pacman_config, custom_repos
 from .utils.settings import load_sync_settings
 
@@ -23,15 +24,7 @@ def _create_parser():
     parser = argparse.ArgumentParser(
         description="List packages potentially missing from configs"
     )
-    parser.add_argument("--version", action="version", version=get_version())
-    parser.add_argument(
-        "-l",
-        "--log-level",
-        default="warning",
-        action="store",
-        help="Set log level",
-        choices=("warning", "info", "debug"),
-    )
+    add_standard_flags(parser)
     return parser
 
 
@@ -70,25 +63,7 @@ def process(args: argparse.Namespace):
     in_repos_pkgbase = set(e.pkgbase for e in in_repos)
 
     # Try to resolve to pkgbase (aur depends can't use it so we need to use pkgnames in config, not pkgbase)
-    pkg_base_mapping = dict((e.package, e.pkgbase) for e in in_repos)
-    pkgbases_in_config = set()
-    unknown_in_config = set()
-    for e in pkgs_in_config:
-        if e in pkg_base_mapping:
-            pkgbases_in_config.add(pkg_base_mapping[e])
-        else:
-            unknown_in_config.add(e)
-    # Try resolving the remaining pkgbases using aur depends
-    if unknown_in_config:
-        depends = set(aurutils.depends(unknown_in_config))
-        pkg_base_mapping2 = dict((e.package, e.pkgbase) for e in depends)
-        for e in unknown_in_config:
-            if e in pkg_base_mapping2:
-                pkgbases_in_config.add(pkg_base_mapping2[e])
-            else:
-                _LOGGER.warning(
-                    "Unknown package in config: %s (can't find locally or on AUR)", e
-                )
+    pkgbases_in_config, _ = resolve_pkgbase(in_repos, pkgs_in_config)
 
     # Just diffing the two sets does not suffice, we need to resolve dependencies next
 

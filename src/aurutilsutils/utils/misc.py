@@ -1,7 +1,10 @@
+import logging
 from typing import Collection, Mapping
 
 from . import aurutils
 from .pacman import FileRepo
+
+_LOGGER = logging.getLogger(name=__name__)
 
 
 def pkgbase_mapping(
@@ -51,3 +54,36 @@ def packages_in_repos_full(
             continue
         in_repos.update(aurutils.list_repo_full(repo))
     return in_repos
+
+
+def resolve_pkgbase(
+    in_repos: Collection[aurutils.PkgInfo], pkgs_in_config: Collection[str]
+) -> tuple[set[str], dict[str, str]]:
+    """Attempt to resolve pkgbase info, first using local info, and then reaching out to aur
+
+    :param in_repos: Information on packages in local repositories
+    :param pkgs_in_config: Packages in config we want to find pkgbase names for
+
+    :return: Set of pkgbases corresponding to pkgs_in_config, and mapping from pkgname to pkgbase
+    """
+    pkg_base_mapping: dict[str, str] = dict((e.package, e.pkgbase) for e in in_repos)
+    pkgbases_in_config = set()
+    unknown_in_config = set()
+    for e in pkgs_in_config:
+        if e in pkg_base_mapping:
+            pkgbases_in_config.add(pkg_base_mapping[e])
+        else:
+            unknown_in_config.add(e)
+    # Try resolving the remaining pkgbases using aur depends
+    if unknown_in_config:
+        depends = set(aurutils.depends(unknown_in_config))
+        pkg_base_mapping2 = dict((e.package, e.pkgbase) for e in depends)
+        for e in unknown_in_config:
+            if e in pkg_base_mapping2:
+                pkgbases_in_config.add(pkg_base_mapping2[e])
+            else:
+                _LOGGER.warning(
+                    "Unknown package in config: %s (can't find locally or on AUR)", e
+                )
+        pkg_base_mapping.update(pkg_base_mapping2)
+    return pkgbases_in_config, pkg_base_mapping

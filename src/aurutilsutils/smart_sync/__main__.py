@@ -17,7 +17,8 @@ from prompt_toolkit import print_formatted_text, HTML
 
 from . import ninja_gen
 from .helpers import find_packages_to_have
-from ..utils import aurutils, get_version
+from ..utils import aurutils
+from ..utils.args import add_standard_flags
 from ..utils.errors import UserErrorMessage, FormattedException, CommandException
 from ..utils.misc import pkgbase_mapping, packages_in_repos
 from ..utils.pacman import pacman_config, custom_repos, FileRepo
@@ -87,19 +88,7 @@ def _create_parser():
         metavar="PACKAGE",
         help="Package to force rebuilding",
     )
-    parser.add_argument("--version", action="version", version=get_version())
-    group = parser.add_argument_group(title="Output control")
-    group.add_argument(
-        "-d", "--debug", default=False, action="store_true", help="Show debug output"
-    )
-    group.add_argument(
-        "-l",
-        "--log-level",
-        default="warning",
-        action="store",
-        help="Set log level",
-        choices=("warning", "info", "debug"),
-    )
+    add_standard_flags(parser)
     return parser
 
 
