@@ -174,11 +174,11 @@ def process(args: argparse.Namespace):
         )
     )
     filter_set.update(current_packages)
-    #    * Things already handled by provides
-    filter_set.update(aurutils.find_provides(depends))
+    #    * Things already handled by provides (and are not outdated)
+    filter_set.update(aurutils.find_provides(depends).difference(targets))
     #    * Useless dependencies that shouldn't be included any longer
     # TODO!
-    #    * But we do want to build force-rebuild entries
+    #    * But we do want to build force-rebuild and outdated entries
     filter_set.difference_update(args.force_rebuild)
     targets_depends = set(e.pkgbase for e in depends)
     targets_depends.difference_update(filter_set)

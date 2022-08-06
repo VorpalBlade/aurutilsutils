@@ -133,7 +133,7 @@ def find_provides(dependency_info: set[DependencyInfo]):
     )
     for line in stderr.splitlines():
         _LOGGER.info("Provides: %s", line)
-    return output.splitlines()
+    return set(output.splitlines())
 
 
 def fetch(queue: Collection[str]):
