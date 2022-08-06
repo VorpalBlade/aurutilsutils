@@ -154,8 +154,7 @@ def process(args: argparse.Namespace):
     if args.vcs:
         vcs_updates = set(aurutils.vercmp_devel(repos))
         targets.update(vcs_updates)
-        # TODO: Find out of date VCS packages
-        pass
+
     # Add force rebuild packages
     targets.update(args.force_rebuild)
     _LOGGER.debug("End of step 3: targets=%r, ignored=%r", targets, ignored)
