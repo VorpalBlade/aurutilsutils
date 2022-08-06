@@ -31,3 +31,4 @@ aur-smartsync = "aurutilsutils.smart_sync.__main__:main"
 aur-unmanaged = "aurutilsutils.unmanaged:main"
 
 [tool.setuptools_scm]
+write_to = "src/aurutilsutils/_version.py"

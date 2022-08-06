@@ -9,7 +9,7 @@ import networkx as nx
 from prompt_toolkit import print_formatted_text, HTML
 
 from .smart_sync.helpers import find_packages_in_config
-from .utils import aurutils
+from .utils import aurutils, get_version
 from .utils.errors import FormattedException, UserErrorMessage
 from .utils.misc import packages_in_repos_full
 from .utils.pacman import pacman_config, custom_repos
@@ -23,6 +23,7 @@ def _create_parser():
     parser = argparse.ArgumentParser(
         description="List packages potentially missing from configs"
     )
+    parser.add_argument("--version", action="version", version=get_version())
     parser.add_argument(
         "-l",
         "--log-level",
