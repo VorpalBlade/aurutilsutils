@@ -19,7 +19,12 @@ from . import ninja_gen
 from .helpers import find_packages_to_have
 from ..utils import aurutils
 from ..utils.args import add_standard_flags
-from ..utils.errors import UserErrorMessage, FormattedException, CommandException
+from ..utils.errors import (
+    UserErrorMessage,
+    FormattedException,
+    CommandException,
+    InternalError,
+)
 from ..utils.misc import pkgbase_mapping, packages_in_repos
 from ..utils.pacman import pacman_config, custom_repos, FileRepo
 from ..utils.settings import (
@@ -145,7 +150,10 @@ def process(args: argparse.Namespace):
             )
         )
     # Add out-of-date VCS packages
+    vcs_updates = set()
     if args.vcs:
+        vcs_updates = set(aurutils.vercmp_devel(repos))
+        targets.update(vcs_updates)
         # TODO: Find out of date VCS packages
         pass
     # Add force rebuild packages
@@ -173,13 +181,15 @@ def process(args: argparse.Namespace):
             packages=dict((e.package, e.pkgver) for e in depends), in_repos=in_repos
         )
     )
-    filter_set.update(current_packages)
+    filter_set.update(current_packages.difference(vcs_updates))
     #    * Things already handled by provides (and are not outdated)
     filter_set.update(aurutils.find_provides(depends).difference(targets))
     #    * Useless dependencies that shouldn't be included any longer
     # TODO!
-    #    * But we do want to build force-rebuild and outdated entries
+
+    #    * But we do want to build force-rebuild entries
     filter_set.difference_update(args.force_rebuild)
+
     targets_depends = set(e.pkgbase for e in depends)
     targets_depends.difference_update(filter_set)
     _LOGGER.debug(
@@ -187,9 +197,20 @@ def process(args: argparse.Namespace):
         targets_depends,
         filter_set,
     )
+    if not targets_depends:
+        print_formatted_text(
+            HTML("<b>Exiting early</b>: Nothing to do (everything got filtered out)!")
+        )
+        sys.exit(0)
     # 6. Download packages
     if args.download:
-        aurutils.fetch(targets_depends)
+        try:
+            aurutils.fetch(targets_depends)
+        except CommandException as e:
+            raise InternalError(
+                f"aur fetch failed with following target(s): {targets_depends}"
+            ) from e
+
     # 7. Call aur view to show user what will be done
     if args.view:
         if not aurutils.view(targets_depends):

@@ -196,3 +196,12 @@ def graph(packages: Collection[str]):
             continue
         g.add_edge(partial_ordering[1], partial_ordering[0])
     return g
+
+
+def vercmp_devel(repos: Mapping[str, FileRepo]):
+    """Find set of outdated packages"""
+    for repo in repos.keys():
+        output = run_out(["aur", "vercmp-devel", "-d", repo])
+        for line in output.splitlines():
+            pkg, _ = line.split(" ", maxsplit=1)
+            yield pkg
