@@ -18,7 +18,7 @@ from prompt_toolkit import print_formatted_text, HTML
 from . import ninja_gen
 from .helpers import find_packages_to_have
 from ..utils import aurutils, get_version
-from ..utils.errors import UserErrorMessage, FormattedException
+from ..utils.errors import UserErrorMessage, FormattedException, CommandException
 from ..utils.misc import pkgbase_mapping, packages_in_repos
 from ..utils.pacman import pacman_config, custom_repos, FileRepo
 from ..utils.settings import (
@@ -166,7 +166,14 @@ def process(args: argparse.Namespace):
     if not targets:
         print_formatted_text(HTML("<b>Exiting early</b>: Nothing to do!"))
         sys.exit(0)
-    depends = set(aurutils.depends(targets))
+    try:
+        depends = set(aurutils.depends(targets))
+    except CommandException as e:
+        raise UserErrorMessage(
+            "Unexpected error when running aur depends (check for typos in package names)."
+            " Another possibility is that the package is too new to be available via the API yet.\n"
+            f"Command attempted: aur depends --table {' '.join(targets)}"
+        ) from e
     # 5. Filter out:
     filter_set = set()
     #    * Ignored packages & repositories from the command line.
