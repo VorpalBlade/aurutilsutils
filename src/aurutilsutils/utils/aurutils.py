@@ -144,12 +144,12 @@ def fetch(queue: Collection[str]):
             "\n".join(queue) + "\n",
             cwd=aurdest(),
         )
-        results = [e.strip() for e in results_file.readlines()]
+        results: list[str] = [e.strip() for e in results_file.readlines()]
 
     def _gen():
         for line in results:
             action, head_from, head_to, path = line.split(":", maxsplit=3)
-            yield action, head_from, head_to, path
+            yield action, head_from, head_to, Path(path.removeprefix("file://"))
 
     final_results = list(_gen())
 
