@@ -68,8 +68,8 @@ def _fixup_package_configs(sync_config: SyncConfig) -> None:
     for package, data in pkg_configs.items():
         if data is None:
             data = {}
-        data: PackageSettings = dict(ChainMap(data, default_package_settings))
-        pkg_configs[package] = data
+        data2: PackageSettings = dict(ChainMap(data, default_package_settings))
+        pkg_configs[package] = data2
     # We annotate each package with the repository it belongs to.
     for repo, entries in sync_config["repositories"].items():
         for pkg in entries:

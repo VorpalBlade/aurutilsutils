@@ -10,7 +10,7 @@ from aurutilsutils.utils.shell import run_out
 
 _RE_SECTION = regex.compile(r"\[(?P<name>[^\n]+)\].*", regex.VERSION1)
 
-PacmanConfig = dict[str, dict[str, str | list[str]]]
+PacmanConfig = dict[str, dict[str, str | list[str] | None]]
 
 
 def _inner_parse_pacman_config(
@@ -27,7 +27,6 @@ def _inner_parse_pacman_config(
             continue
         elif match := _RE_SECTION.match(line):
             cur_section = match.group("name")
-            continue
         else:
             if "=" in line:
                 key, value = line.split("=", maxsplit=1)
@@ -38,9 +37,9 @@ def _inner_parse_pacman_config(
 
 def _parse_pacman_config(data: Iterable[str]) -> PacmanConfig:
     """High level parser, putting lines into a dictionary"""
-    result = {}
+    result: PacmanConfig = {}
     for section, key, value in _inner_parse_pacman_config(data):
-        sec_obj = result.setdefault(section, {})
+        sec_obj: dict[str, str | list[str] | None] = result.setdefault(section, {})
         if key not in sec_obj:
             sec_obj[key] = value
         else:

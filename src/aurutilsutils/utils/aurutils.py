@@ -45,7 +45,7 @@ def list_repo(repo: FileRepo) -> dict[str, str]:
     output = run_out(
         ["aur", "repo", "--list", f"--database={repo.name}", f"--root={repo.root}"]
     )
-    return dict(tuple(e.split("\t")) for e in output.splitlines())
+    return dict(tuple(e.split("\t", maxsplit=1)) for e in output.splitlines())
 
 
 @dataclasses.dataclass(frozen=True)
@@ -111,8 +111,7 @@ def depends(packages: Collection[str]):
     output, _ = run_inout(
         ["aur", "depends", "--table", "-"], "\n".join(packages) + "\n"
     )
-    output = output.splitlines()
-    for line in output:
+    for line in output.splitlines():
         if not line:
             continue
         sline = line.split("\t")
@@ -177,7 +176,7 @@ def view(packages: Collection[str]) -> bool:
 def graph(packages: Collection[str]):
     # Read in all .SRCINFO files and concatenate them
     aur_dest = aurdest()
-    lines = []
+    lines: list[str] = []
     for package in packages:
         with (aur_dest / package / ".SRCINFO").open(mode="rt", encoding="utf-8") as f:
             lines.extend(e.rstrip("\n") for e in f.readlines())

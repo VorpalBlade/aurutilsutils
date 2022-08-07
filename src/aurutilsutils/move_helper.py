@@ -53,7 +53,7 @@ def main():
         process(args)
 
 
-def create_pacman_conf(sync_config: SyncConfig, base_path: Path | None):
+def create_pacman_conf(sync_config: SyncConfig, base_path: Path):
     for repo in sync_config["repositories"].keys():
         print(f"[{repo}]")
         print("SigLevel = Optional TrustAll")
