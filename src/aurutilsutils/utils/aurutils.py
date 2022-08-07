@@ -45,7 +45,7 @@ def list_repo(repo: FileRepo) -> dict[str, str]:
     output = run_out(
         ["aur", "repo", "--list", f"--database={repo.name}", f"--root={repo.root}"]
     )
-    return dict(tuple(e.split("\t", maxsplit=1)) for e in output.splitlines())
+    return dict(tuple[str, str](e.split("\t", maxsplit=1)) for e in output.splitlines())
 
 
 @dataclasses.dataclass(frozen=True)

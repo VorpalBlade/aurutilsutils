@@ -32,7 +32,8 @@ def gen_build_command(
     depends: list[str],
 ):
     fmt_depends = " ".join(f"{d}.stamp" for d in depends)
-    yield f"build {package}.stamp: aurbuild_{package_config['chroot']}_{force} {str(pkgbuild_dir / 'PKGBUILD')} | {fmt_depends}"
+    pkgbuild_path = pkgbuild_dir / "PKGBUILD"
+    yield f"build {package}.stamp: aurbuild_{package_config['chroot']}_{force} {pkgbuild_path} | {fmt_depends}"
     yield f"    directory = {str(pkgbuild_dir)}"
     yield f"    repo = {repo.name}"
     yield f"    root = {repo.root}"

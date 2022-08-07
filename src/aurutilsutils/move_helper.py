@@ -62,7 +62,6 @@ def create_pacman_conf(sync_config: SyncConfig, base_path: Path):
 
 
 def move_commands(
-    pacconf: PacmanConfig,
     sync_config: SyncConfig,
     repos: dict[str, FileRepo],
     base_path: Path,
@@ -113,7 +112,6 @@ def process(args: argparse.Namespace):
                 "Source path (-s) required for mv command generation."
             )
         move_commands(
-            pacconf=pacconf,
             sync_config=sync_config,
             repos=repos,
             base_path=args.base_path,

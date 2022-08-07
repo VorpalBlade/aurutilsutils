@@ -35,10 +35,10 @@ def main():
 
     with logging_and_error_handling(log_level=args.log_level, debug=args.debug):
         # Start actual program logic
-        process(args)
+        process()
 
 
-def process(args: argparse.Namespace):
+def process():
     """Main logic: top level"""
     # 1. Load configurations
     sync_config = load_sync_settings()
