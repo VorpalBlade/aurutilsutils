@@ -84,7 +84,7 @@ def _create_parser():
         help="Repositories to skip during this run",
     )
     parser.add_argument(
-        "--force-rebuild",
+        "-f", "--force-rebuild",
         default=[],
         nargs="+",
         action="append",

@@ -1,0 +1,13 @@
+#compdef aur-unmanaged
+#description Show packages that are missing from aur-smartsync config
+
+local -a args
+
+args=(
+    '(-)'{--help,-h}'[show help and exit]'
+    '(-)--version[show version and exit]'
+    '(--debug -d)'{--debug,-d}'[show debug output]'
+    '(--log-level -l)'{--log-level=,-l}'[set log level]:log level:(warning info debug)'
+)
+
+_arguments $args

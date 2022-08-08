@@ -1,0 +1,17 @@
+#compdef aur-move-helper
+#description Transition from mono repo to split smartsync repos
+
+local -a args
+
+args=(
+    '(-)'{--help,-h}'[show help and exit]'
+    '(-)--version[show version and exit]'
+    '(--debug -d)'{--debug,-d}'[show debug output]'
+    '(--log-level -l)'{--log-level=,-l}'[set log level]:log level:(warning info debug)'
+
+    '(--source-path -s)'{--source-path=,-s}'[source path for old packages]:path:_files -/'
+    '(--base-path -b)'{--base-path=,-b}'[base path for repositories]:path:_files -/'
+    '(--operation -o)'{--operation,-o}'[operation to perform]:operation:(pacman.conf mv)'
+)
+
+_arguments $args
