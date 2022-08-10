@@ -20,4 +20,4 @@ args=(
     #'*:package: _aur_local_packages'
 )
 
-_arguments $args
+_arguments -s $args

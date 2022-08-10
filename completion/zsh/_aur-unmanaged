@@ -10,4 +10,4 @@ args=(
     '(--log-level -l)'{--log-level=,-l}'[set log level]:log level:(warning info debug)'
 )
 
-_arguments $args
+_arguments -s $args

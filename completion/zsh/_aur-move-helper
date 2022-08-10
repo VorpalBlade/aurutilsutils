@@ -14,4 +14,4 @@ args=(
     '(--operation -o)'{--operation,-o}'[operation to perform]:operation:(pacman.conf mv)'
 )
 
-_arguments $args
+_arguments -s $args
