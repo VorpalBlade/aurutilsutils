@@ -139,7 +139,7 @@ def fetch(queue: Collection[str]):
     """Implements the aur fetch call"""
     with tempfile.NamedTemporaryFile(mode="rt") as results_file:
         run_in(
-            ["aur", "fetch", "--discard", f"--results={results_file.name}", "-"],
+            ["aur", "fetch", "--sync=auto", "--discard", f"--results={results_file.name}", "-"],
             "\n".join(queue) + "\n",
             cwd=aurdest(),
         )
