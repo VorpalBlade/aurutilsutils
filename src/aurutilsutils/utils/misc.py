@@ -34,7 +34,7 @@ def packages_in_repos(
     :param repos: File repositories found in pacman.conf
     :param ignored_repos: Repos ignored on the command line.
 
-    :return Mapping from package name to package version
+    :return: Mapping from package name to package version
     """
     in_repos: dict[str, str] = {}
     for repo in repos.values():

@@ -57,9 +57,9 @@ def process():
     # Just diffing the two sets does not suffice, we need to resolve dependencies next
 
     # However, not all packages may exist locally in aurdest (which is needed for graph)!
-    packages_in_aurdest = set(e.name for e in aurutils.aurdest().iterdir())
+    pkgbases_in_aurdest = set(e.name for e in aurutils.aurdest().iterdir())
 
-    dep_graph = aurutils.graph(in_repos_pkgbase.intersection(packages_in_aurdest))
+    dep_graph = aurutils.graph(in_repos_pkgbase.intersection(pkgbases_in_aurdest))
     dep_graph.add_nodes_from(pkgbases_in_config)
 
     all_pkgs_to_have = set()

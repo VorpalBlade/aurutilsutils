@@ -204,7 +204,11 @@ def process(args: argparse.Namespace):
             )
             sys.exit(1)
     # 8. Rebuild dependency info with .SRCINFO data (needed to handle .so deps and versioned deps)
-    dep_graph = aurutils.graph(targets_depends)
+    # NOTE! We need to build a graph for all local packages, otherwise we cannot handle dependencies
+    #       that are not mentioned in the configuration file correctly: If we are upgrading just the
+    #       dependency we would otherwise have no way of knowing who depends on the package.
+    pkgbases_in_aurdest = set(e.name for e in aurutils.aurdest().iterdir())
+    dep_graph = aurutils.graph(targets_depends.union(pkgbases_in_aurdest))
     if not nx.is_directed_acyclic_graph(dep_graph):
         raise UserErrorMessage("AIEE! Cycles in dependency graph! Giving up!")
     # 9. Build pkgbase mapping

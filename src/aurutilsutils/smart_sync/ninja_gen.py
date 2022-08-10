@@ -65,7 +65,7 @@ def generate(
         yield from gen_build_rule(True, False, build_flags)
         yield from gen_build_rule(False, True, build_flags)
         yield from gen_build_rule(True, True, build_flags)
-        for package in packages:
+        for package in sorted(packages):
             cfg = configs[package]
             repo = cfg["repo"]
             yield from gen_build_command(
@@ -73,7 +73,7 @@ def generate(
                 pkgbuild_dir=src_dir / package,
                 repo=repos[repo],
                 package_config=cfg,
-                depends=nx.ancestors(dependency_graph, package),
+                depends=nx.ancestors(dependency_graph, package).intersection(packages),
                 force=package in forced,
             )
 
