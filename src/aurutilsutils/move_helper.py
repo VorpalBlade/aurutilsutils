@@ -4,7 +4,7 @@ import argparse
 import logging
 from pathlib import Path
 
-from more_itertools import flatten
+from more_itertools import flatten, one
 
 from .smart_sync.helpers import find_packages_in_config
 from .utils.args import add_standard_flags
@@ -81,20 +81,36 @@ def move_commands(
         pkg_info_by_name[pkginfo.package] = pkginfo
         base_to_pkgs.setdefault(pkginfo.pkgbase, set()).add(pkginfo.package)
 
+    # Figure out packages to move and generate commands
     for repo, entries in sync_config["repositories"].items():
+        target_path = base_path / repo
+        # No moving to self!
+        if source_path == target_path:
+            continue
         # Find all siblings via a jump back and forth to pkgbase
         bases = set(pkg_to_base[e] for e in entries)
         if missing := bases.difference(base_to_pkgs):
             _LOGGER.warning("Can't find the following packages: %r", missing)
         all_entries = set(flatten(base_to_pkgs[e] for e in bases if e in base_to_pkgs))
-        target_path = base_path / repo
-        print(f"mkdir {target_path}")
+        # Figure out packages to move
+        pkgs_moved = []
+        files_moved = []
         for entry in all_entries:
+            # Avoid dealing with architecture, just use a glob
             file_name = f"{entry}-{pkg_info_by_name[entry].pkgver}-*.pkg.tar.zst"
-            print(f"mv {source_path / file_name} {target_path}")
-        print(
-            f"repo-add {(target_path / repo).with_suffix('.db.tar.gz')} {target_path}/*.pkg.tar.zst"
-        )
+            if list(source_path.glob(file_name)):
+                pkgs_moved.append(entry)
+                files_moved.append(source_path / file_name)
+        # If any packages were to be moved, print the commands to do so
+        if files_moved:
+            print(f"mkdir {target_path}")
+            for file in files_moved:
+                print(f"mv {file} {target_path}")
+            print(
+                f"repo-add {(target_path / repo).with_suffix('.db.tar.gz')} {' '.join(str(e) for e in files_moved)}"
+            )
+            source_repo = one(source_path.glob("*.db.tar.gz"))
+            print(f"repo-remove {source_repo} {' '.join(pkgs_moved)}")
 
 
 def process(args: argparse.Namespace):
