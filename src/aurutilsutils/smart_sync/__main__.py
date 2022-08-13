@@ -241,6 +241,7 @@ def generate_build_settings(
     :return: A mapping from pkgbase to build settings for those packages.
     """
     build_settings: dict[str, PackageSettings] = {}
+    build_flags = sync_config["build_flags"]
     pkg_configs = sync_config["package_overrides"]
     for target in targets_depends:
         pkg_names = pkg_base_rev_map[target]
@@ -268,7 +269,12 @@ def generate_build_settings(
                     "Manual configuration required"
                 )
             # Assume chroot okay unless overridden
-            build_settings[target] = {"repo": one(repo_candidates), "chroot": True}
+            repo = one(repo_candidates)
+            build_settings[target] = {
+                "repo": repo,
+                "chroot": True,
+                "build_flags": build_flags[repo],
+            }
         else:
             raise UserErrorMessage(
                 f"Inconsistent configurations found for (possibly split?) package {target}: {pconfs}"
@@ -304,7 +310,6 @@ def build_with_ninja(
             configs=build_settings,
             dependency_graph=dep_graph,
             src_dir=aurutils.aurdest(),
-            build_flags=sync_config["build_flags"],
             forced=args.force_rebuild,
         )
         with (tmp_path / "build.ninja").open(mode="wt") as f:

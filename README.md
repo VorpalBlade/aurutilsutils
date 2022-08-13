@@ -14,7 +14,6 @@ Tools included:
 * `aur-move-helper` is a utility to help transition from a local AUR mono-repo
   to split repositories based on a newly written config file.
 
-
 ## Config file
 
 The config file is read from `~/.config/aurutilsutils/sync.yml`. The expected
@@ -22,8 +21,15 @@ file format can be seen in this example:
 
 ```yaml
 build_flags:
-    - "--extra-flags"
-    - "to aur build"
+    global:
+      - "--extra-flags"
+      - "to aur build"
+    default:
+      - "--makepkg-conf"
+      - "/etc/makepkg.conf"
+    fast-repo-x86-v3:
+      - "--makepkg-conf"
+      - "/etc/other-makepkg.conf"
 repositories:
     custom-basics:
         - aurutils
@@ -38,9 +44,15 @@ package_overrides:
 
 ### Build flags
 
-Extra flags to always pass to `aur build` can be listed in the `build_flags`
-section. This can be used to pass `--remove` to remove old versions, or specify
-a specific `makepkg.conf`.
+Extra flags to pass to `aur build` can be listed in the `build_flags` section.
+This can be used to pass `--remove` to remove old versions, or specify a
+specific `makepkg.conf`.
+
+`build_flags` are set per repository but with two extensions:
+
+* Flags listed in the `global` subsection are set for all repositories
+* Flags listed in the `default` subsection are set for all repositories that
+  don't have specific flags set.
 
 ### Repositories
 

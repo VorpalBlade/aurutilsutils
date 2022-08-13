@@ -1,3 +1,4 @@
+import shlex
 from collections.abc import Collection, Mapping
 from pathlib import Path
 
@@ -7,7 +8,7 @@ from ..utils.pacman import FileRepo
 from ..utils.settings import PackageSettings
 
 
-def gen_build_rule(chroot: bool, force: bool, build_flags: list[str]):
+def gen_build_rule(chroot: bool, force: bool):
     yield f"rule aurbuild_{chroot}_{force}"
     args = ["--clean", "--syncdeps", "-d", "${repo}", "--root", "${root}"]
     if chroot:
@@ -16,10 +17,9 @@ def gen_build_rule(chroot: bool, force: bool, build_flags: list[str]):
         args.append("--rmdeps")
     if force:
         args.append("--force")
-    args.extend(build_flags)
     yield "    command = env -C ${directory} -- aur build " + " ".join(
         args
-    ) + " && date --rfc-3339=ns > ${out}"
+    ) + " ${build_flags} && date --rfc-3339=ns > ${out}"
     yield "    pool = console"
 
 
@@ -37,6 +37,7 @@ def gen_build_command(
     yield f"    directory = {str(pkgbuild_dir)}"
     yield f"    repo = {repo.name}"
     yield f"    root = {repo.root}"
+    yield f"    build_flags = {' '.join(shlex.quote(e) for e in package_config['build_flags'])}"
 
 
 def generate(
@@ -45,7 +46,6 @@ def generate(
     configs: Mapping[str, PackageSettings],
     dependency_graph: nx.DiGraph,
     src_dir: Path,
-    build_flags: list[str],
     forced: Collection[str],
 ):
     """Generate ninja build file
@@ -55,16 +55,15 @@ def generate(
     :param configs: Package configurations to determine home repos and chroot status
     :param dependency_graph: Dependency graph to use for ninja
     :param src_dir: This should be aurdest()
-    :param build_flags: Standard build flags to pass
     :param forced: Forced packages
     :return: File contents
     """
 
     def _generator():
-        yield from gen_build_rule(False, False, build_flags)
-        yield from gen_build_rule(True, False, build_flags)
-        yield from gen_build_rule(False, True, build_flags)
-        yield from gen_build_rule(True, True, build_flags)
+        yield from gen_build_rule(False, False)
+        yield from gen_build_rule(True, False)
+        yield from gen_build_rule(False, True)
+        yield from gen_build_rule(True, True)
         for package in sorted(packages):
             cfg = configs[package]
             repo = cfg["repo"]

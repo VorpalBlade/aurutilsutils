@@ -33,14 +33,15 @@ class PackageSettings(TypedDict, total=False):
     chroot: bool
     # Which repo this belongs to. Note! This should not be in config, but is computed internally
     repo: str
+    # Build flags. Note! This should not be in config, but is computed internally from repo data
+    build_flags: list[str]
 
 
 class SyncConfig(TypedDict):
     """Sync settings"""
 
     # A list of flags to always pass to aur-build
-    build_flags: list[str]
-
+    build_flags: dict[str, list[str]]
     # Mapping from repository name to packages in said repository
     repositories: dict[str, list[str]]
     # Package overrides
@@ -50,6 +51,7 @@ class SyncConfig(TypedDict):
 def load_sync_settings() -> SyncConfig:
     """Load the sync configuration file"""
     settings = load_settings("sync")
+    _fixup_build_flags(settings)
     _fixup_package_configs(settings)
     return settings
 
@@ -60,6 +62,7 @@ def _fixup_package_configs(sync_config: SyncConfig) -> None:
 
     Also add package configs for any package missing them but in the repos section
     """
+    build_flags = sync_config["build_flags"]
     pkg_configs = sync_config["package_overrides"]
     # This is the default package settings
     default_package_settings: PackageSettings = {
@@ -76,3 +79,18 @@ def _fixup_package_configs(sync_config: SyncConfig) -> None:
             if pkg not in pkg_configs:
                 pkg_configs[pkg] = copy.copy(default_package_settings)
             pkg_configs[pkg]["repo"] = repo
+            pkg_configs[pkg]["build_flags"] = build_flags[repo]
+
+
+def _fixup_build_flags(sync_config: SyncConfig) -> None:
+    """Resolve everything and add missing entries for build flags"""
+    build_flags = sync_config.setdefault("build_flags", {})
+    global_flags = build_flags.setdefault("global", [])
+    default_flags = build_flags.setdefault("default", [])
+    for repo in sync_config["repositories"].keys():
+        if repo in {"global", "default"}:
+            raise UserErrorMessage(
+                f"Forbidden repository name {repo}, this name has special meaning"
+            )
+        repo_config = build_flags.setdefault(repo, copy.copy(default_flags))
+        repo_config.extend(global_flags)

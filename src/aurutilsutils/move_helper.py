@@ -15,7 +15,7 @@ from .utils.misc import (
     resolve_pkgbase,
     logging_and_error_handling,
 )
-from .utils.pacman import pacman_config, custom_repos, PacmanConfig, FileRepo
+from .utils.pacman import pacman_config, custom_repos, FileRepo
 from .utils.settings import load_sync_settings, SyncConfig
 
 _LOGGER = logging.getLogger(name=__name__)
