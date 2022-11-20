@@ -24,7 +24,7 @@ from ..utils.errors import (
     InternalError,
 )
 from ..utils.misc import pkgbase_mapping, packages_in_repos, logging_and_error_handling
-from ..utils.pacman import pacman_config, custom_repos, FileRepo
+from ..utils.pacman import pacman_config, custom_repos, FileRepo, find_package_repo
 from ..utils.settings import (
     load_sync_settings,
     PackageSettings,
@@ -262,19 +262,36 @@ def generate_build_settings(
             repo_candidates = set(
                 pkg_configs[e]["repo"] for e in parents if e in pkg_configs
             )
-            if len(repo_candidates) != 1:
+            if len(repo_candidates) == 0:
+                # Check if we have this dependency already in a repo on the system, if so use the same repo.
+                pkg_results = find_package_repo(target)
+                if len(pkg_results) != 1:
+                    raise UserErrorMessage(
+                        f"Package {target} is pulled in as a dependency, but it isn't clear which repo to put it. "
+                        f"Reason: Candidates are (based on existing package): {pkg_results}. "
+                        "Manual configuration required"
+                    )
+                # Assume chroot okay unless overridden
+                repo = one(pkg_results)[0]
+                build_settings[target] = {
+                    "repo": repo,
+                    "chroot": True,
+                    "build_flags": build_flags[repo],
+                }
+            elif len(repo_candidates) > 1:
                 raise UserErrorMessage(
                     f"Package {target} is pulled in as a dependency, but it isn't clear which repo to put it. "
-                    f"Candidates are: {repo_candidates}. "
+                    f"Reason: Multiple candidates: {repo_candidates}. "
                     "Manual configuration required"
                 )
-            # Assume chroot okay unless overridden
-            repo = one(repo_candidates)
-            build_settings[target] = {
-                "repo": repo,
-                "chroot": True,
-                "build_flags": build_flags[repo],
-            }
+            else:
+                # Assume chroot okay unless overridden
+                repo = one(repo_candidates)
+                build_settings[target] = {
+                    "repo": repo,
+                    "chroot": True,
+                    "build_flags": build_flags[repo],
+                }
         else:
             raise UserErrorMessage(
                 f"Inconsistent configurations found for (possibly split?) package {target}: {pconfs}"

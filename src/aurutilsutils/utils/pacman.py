@@ -5,6 +5,8 @@ from pathlib import Path
 
 import regex
 
+from aurutilsutils.utils.errors import CommandException
+
 # Pattern to find section headers
 from aurutilsutils.utils.shell import run_out
 
@@ -85,3 +87,18 @@ def custom_repos(config: PacmanConfig) -> dict[str, FileRepo]:
                 name=section, root=root, path=(root / f"{section}.db").resolve()
             )
     return repos
+
+
+def find_package_repo(package: str) -> set[tuple[str, str]]:
+    """Find which repo a package is in (if any)"""
+    try:
+        pkg_results = set(
+            run_out(["pacman", "-S", "--print", "--print-format", "%r|%n", package])
+            .rstrip("\n")
+            .split("\n")
+        )
+        return {tuple(e.split("|")) for e in pkg_results}
+    except CommandException as e:
+        if e.stderr.contains("not found"):
+            return set()
+        raise
