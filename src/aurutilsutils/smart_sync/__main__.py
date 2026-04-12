@@ -140,6 +140,7 @@ def process(args: argparse.Namespace):
     vcs_updates = set()
     if args.vcs:
         vcs_updates = set(aurutils.vercmp_devel(repos))
+        _LOGGER.debug(f"Step 3: vcs_updates=%r", vcs_updates)
         targets.update(vcs_updates)
 
     # Add force rebuild packages
@@ -249,7 +250,12 @@ def generate_build_settings(
             lambda x: x is not None,
             (pkg_configs.get(pname, None) for pname in pkg_names),
         )
-        pconfs = list(unique_everseen(possible_pconfs))
+        pconfs = list(
+            unique_everseen(
+                possible_pconfs,
+                key=lambda x: (x["repo"], x["chroot"], tuple(x["build_flags"])),
+            )
+        )
 
         if len(pconfs) == 1:
             pconf = one(pconfs)
