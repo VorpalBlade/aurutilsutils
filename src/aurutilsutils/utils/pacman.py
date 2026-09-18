@@ -99,6 +99,6 @@ def find_package_repo(package: str) -> set[tuple[str, str]]:
         )
         return {tuple(e.split("|")) for e in pkg_results}
     except CommandException as e:
-        if e.stderr.contains("not found"):
+        if "not found" in e.stderr:
             return set()
         raise
